@@ -34,7 +34,8 @@ local function setupShopItems(id, shopType, shopName, groups)
 				metadata = slot.metadata,
 				license = slot.license,
 				currency = slot.currency,
-				grade = slot.grade
+				grade = slot.grade,
+				sellPrice = slot.sellPrice,
 			}
 
 			if slot.metadata then
@@ -61,6 +62,7 @@ local function registerShopType(shopType, properties)
 			items = properties.inventory,
 			slots = #properties.inventory,
 			type = 'shop',
+			sell = properties.sell or false,
 		}
 
 		setupShopItems(nil, shopType, properties.name, properties.groups or properties.jobs)
@@ -101,6 +103,7 @@ local function createShop(shopType, id)
 		type = 'shop',
 		coords = coords,
 		distance = shared.target and shop.targets?[id]?.distance,
+		sell = shop.sell or false,
 	}
 
 	setupShopItems(id, shopType, shop.name, groups)
@@ -296,6 +299,86 @@ lib.callback.register('ox_inventory:buyItem', function(source, data)
 			return false, false, { type = 'error', description = locale('unable_stack_items') }
 		end
 	end
+end)
+
+lib.callback.register('ox_inventory:sellItem', function(source, data)
+	if data.fromType ~= 'player' then return end
+
+	local playerInv = Inventory(source)
+
+	if not playerInv or not playerInv.currentShop then return end
+
+	local shopType, shopId = playerInv.currentShop:match('^(.-) (%d-)$')
+
+	if not shopType then shopType = playerInv.currentShop end
+
+	if shopId then shopId = tonumber(shopId) end
+
+	local shop = shopId and Shops[shopType][shopId] or Shops[shopType]
+
+	if not shop or not shop.sell then
+		return false, false, { type = 'error', description = locale('shop_no_sell') }
+	end
+
+	local playerSlot = playerInv.items[data.fromSlot]
+
+	if not playerSlot then return end
+
+	local itemName = playerSlot.name
+	local shopItem
+
+	for i = 1, shop.slots do
+		local slot = shop.items[i]
+		if slot and slot.name == itemName and slot.sellPrice and slot.sellPrice > 0 then
+			shopItem = slot
+			break
+		end
+	end
+
+	if not shopItem then
+		return false, false, { type = 'error', description = locale('shop_no_sell_item') }
+	end
+
+	local count = data.count or 1
+
+	if count > playerSlot.count then
+		count = playerSlot.count
+	end
+
+	if count < 1 then return end
+
+	local currency = shopItem.currency or 'money'
+	local totalPrice = count * shopItem.sellPrice
+
+	if not TriggerEventHooks('sellItem', {
+		source = source,
+		shopType = shopType,
+		shopId = shopId,
+		fromInventory = playerInv.id,
+		fromSlot = data.fromSlot,
+		itemName = itemName,
+		metadata = playerSlot.metadata,
+		count = count,
+		price = shopItem.sellPrice,
+		totalPrice = totalPrice,
+		currency = currency,
+	}) then return false end
+
+	Inventory.RemoveItem(playerInv, itemName, count, playerSlot.metadata, data.fromSlot)
+	Inventory.AddItem(playerInv, currency, totalPrice)
+
+	if server.syncInventory then server.syncInventory(playerInv) end
+
+	local currencyLabel = Items(currency)
+	local message = locale('sold_for', count, Items(itemName).label, (currency == 'money' and locale('$') or math.groupdigits(totalPrice)), (currency == 'money' and math.groupdigits(totalPrice) or ' '..currencyLabel.label))
+
+	if server.loglevel > 0 then
+		if server.loglevel > 1 or totalPrice >= 500 then
+			lib.logger(playerInv.owner, 'sellItem', ('"%s" %s'):format(playerInv.label, message:lower()), ('shop:%s'):format(shop.label))
+		end
+	end
+
+	return true, { data.fromSlot, playerInv.items[data.fromSlot] or { slot = data.fromSlot }, playerInv.weight }, { type = 'success', description = message }
 end)
 
 server.shops = Shops

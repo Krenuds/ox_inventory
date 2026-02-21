@@ -5,12 +5,15 @@ import { selectItemAmount, setItemAmount } from '../../store/inventory';
 import { DragSource } from '../../typings';
 import { onUse } from '../../dnd/onUse';
 import { onGive } from '../../dnd/onGive';
+import { onSell } from '../../dnd/onSell';
 import { fetchNui } from '../../utils/fetchNui';
 import { Locale } from '../../store/locale';
+import { selectRightInventory } from '../../store/inventory';
 import UsefulControls from './UsefulControls';
 
 const InventoryControl: React.FC = () => {
   const itemAmount = useAppSelector(selectItemAmount);
+  const rightInventory = useAppSelector(selectRightInventory);
   const dispatch = useAppDispatch();
 
   const [infoVisible, setInfoVisible] = useState(false);
@@ -28,6 +31,15 @@ const InventoryControl: React.FC = () => {
       source.inventory === 'player' && onGive(source.item);
     },
   }));
+
+  const [, sell] = useDrop<DragSource, void, any>(() => ({
+    accept: 'SLOT',
+    drop: (source) => {
+      if (source.inventory === 'player') {
+        onSell(source, { inventory: 'shop', item: { slot: 1 } });
+      }
+    },
+  }), [rightInventory]);
 
   const inputHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.target.valueAsNumber =
@@ -50,6 +62,11 @@ const InventoryControl: React.FC = () => {
           <button className="inventory-control-button" ref={use}>
             {Locale.ui_use || 'Use'}
           </button>
+          {rightInventory.type === 'shop' && rightInventory.sell && (
+            <button className="inventory-control-button" ref={sell}>
+              {Locale.ui_sell || 'Sell'}
+            </button>
+          )}
           <button className="inventory-control-button" ref={give}>
             {Locale.ui_give || 'Give'}
           </button>

@@ -6,7 +6,7 @@ require 'modules.shops.server'
 require 'modules.pefcl.server'
 
 if GetConvar('inventory:versioncheck', 'true') == 'true' then
-	lib.versionCheck('communityox/ox_inventory')
+	lib.versionCheck('overextended/ox_inventory')
 end
 
 local TriggerEventHooks = require 'modules.hooks.server'
@@ -210,7 +210,7 @@ local function openInventory(source, invType, data, ignoreSecurityChecks)
 
 				if not right then
 					local netid = tonumber(data:sub(9))
-
+	
 					if netid and NetworkGetEntityFromNetworkId(netid) > 0 then
 						right = Inventory.Create(data, locale('dumpster'), invType, 15, 0, 100000, false)
 					end
@@ -230,13 +230,6 @@ local function openInventory(source, invType, data, ignoreSecurityChecks)
 		else right = Inventory(data) end
 
 		if not right then return end
-
-        -- Security check to make sure the requested inventory type is the same as the found inventory
-        -- Only case where a missmatch is tolerated is for temporary stashes
-        if right.type ~= invType and not (right.type == 'temp' and invType == 'stash') then
-            DropPlayer(source, 'sussy')
-            return
-        end
 
 		if not ignoreSecurityChecks and right.groups and not server.hasGroup(left, right.groups) then return end
 
@@ -294,21 +287,7 @@ end
 ---@param invType string
 ---@param data string|number|table
 lib.callback.register('ox_inventory:openInventory', function(source, invType, data)
-    if invType == 'player' and source ~= data then
-        local serverId = type(data) == 'table' and data.id or data
-
-        if source == serverId or type(serverId) ~= 'number' then return end
-
-        local left = Inventory(source)
-        if not left then return end
-
-        local isPolice = server.hasGroup(left, shared.police)
-        local isTargetStealable = Player(serverId).state.canSteal
-
-        if not isPolice and not isTargetStealable then return end
-    end
-
-    return openInventory(source, invType, data)
+	return openInventory(source, invType, data)
 end)
 
 ---@param netId number
@@ -388,9 +367,9 @@ end)
 ---@param metadata { [string]: any }?
 ---@return table | boolean | nil
 lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, metadata, noAnim)
-	local inventory = Inventory(source)
+	local inventory = Inventory(source) --[[@as OxInventory]]
 
-	if inventory and inventory.player then
+	if inventory.player then
 		local item = Items(itemName)
 		local data = item and (slot and inventory.items[slot] or Inventory.GetSlotWithItem(inventory, item.name, metadata, true))
 
@@ -576,8 +555,7 @@ lib.addCommand({'additem', 'giveitem'}, {
 
 	if item then
 		local inventory = Inventory(args.target) --[[@as OxInventory]]
-		local count = args.count and math.max(args.count, 1) or 1
-
+		local count = args.count or 1
 		local success, response = Inventory.AddItem(inventory, item.name, count, args.type and { type = tonumber(args.type) or args.type })
 
 		if not success then
@@ -597,27 +575,25 @@ lib.addCommand('removeitem', {
 	params = {
 		{ name = 'target', type = 'playerId', help = 'The player to remove the item from' },
 		{ name = 'item', type = 'string', help = 'The name of the item' },
-		{ name = 'count', type = 'number', help = 'The amount of the item to take', optional = true },
+		{ name = 'count', type = 'number', help = 'The amount of the item to take' },
 		{ name = 'type', help = 'Only remove items with a matching metadata "type"', optional = true },
 	},
 	restricted = 'group.admin',
 }, function(source, args)
 	local item = Items(args.item)
 
-	if item then
+	if item and args.count > 0 then
 		local inventory = Inventory(args.target) --[[@as OxInventory]]
-		local count = args.count and math.max(args.count, 1) or 1
-
-		local success, response = Inventory.RemoveItem(inventory, item.name, count, args.type and { type = tonumber(args.type) or args.type }, nil, true)
+		local success, response = Inventory.RemoveItem(inventory, item.name, args.count, args.type and { type = tonumber(args.type) or args.type }, nil, true)
 
 		if not success then
-			return Citizen.Trace(('Failed to remove %sx %s from player %s (%s)'):format(count, item.name, args.target, response))
+			return Citizen.Trace(('Failed to remove %sx %s from player %s (%s)'):format(args.count, item.name, args.target, response))
 		end
 
 		source = Inventory(source) or {label = 'console', owner = 'console'}
 
 		if server.loglevel > 0 then
-			lib.logger(source.owner, 'admin', ('"%s" removed %sx %s from "%s"'):format(source.label, count, item.name, inventory.label))
+			lib.logger(source.owner, 'admin', ('"%s" removed %sx %s from "%s"'):format(source.label, args.count, item.name, inventory.label))
 		end
 	end
 end)
@@ -636,18 +612,16 @@ lib.addCommand('setitem', {
 
 	if item then
 		local inventory = Inventory(args.target) --[[@as OxInventory]]
-		local count = args.count and math.max(args.count, 0) or 0
-
-		local success, response = Inventory.SetItem(inventory, item.name, count or 0, args.type and { type = tonumber(args.type) or args.type })
+		local success, response = Inventory.SetItem(inventory, item.name, args.count or 0, args.type and { type = tonumber(args.type) or args.type })
 
 		if not success then
-			return Citizen.Trace(('Failed to set %s count to %sx for player %s (%s)'):format(item.name, count, args.target, response))
+			return Citizen.Trace(('Failed to set %s count to %sx for player %s (%s)'):format(item.name, args.count, args.target, response))
 		end
 
 		source = Inventory(source) or {label = 'console', owner = 'console'}
 
 		if server.loglevel > 0 then
-			lib.logger(source.owner, 'admin', ('"%s" set "%s" %s count to %sx'):format(source.label, inventory.label, item.name, count))
+			lib.logger(source.owner, 'admin', ('"%s" set "%s" %s count to %sx'):format(source.label, inventory.label, item.name, args.count))
 		end
 	end
 end)
@@ -661,8 +635,6 @@ lib.addCommand('clearevidence', {
 	if not server.isPlayerBoss then return end
 
 	local inventory = Inventory(source)
-	if not inventory then return end
-
 	local group, grade = server.hasGroup(inventory, shared.police)
 	local hasPermission = group and server.isPlayerBoss(source, group, grade)
 
@@ -720,3 +692,100 @@ lib.addCommand('viewinv', {
 }, function(source, args)
 	Inventory.InspectInventory(source, tonumber(args.invId) or args.invId)
 end)
+
+
+RegisterNetEvent('ox_inventory:lockpickUsed', function(netId, slot)
+    local src = source
+    local vehicle = NetworkGetEntityFromNetworkId(netId)
+    
+    if DoesEntityExist(vehicle) then
+        -- 50% chance to break lockpick
+        local breakChance = math.random(1, 100)
+        
+        if breakChance <= 50 then
+            -- Remove lockpick
+            exports.ox_inventory:RemoveItem(src, 'lockpick', 1, nil, slot)
+            TriggerClientEvent('ox_lib:notify', src, {
+                title = 'Lockpick',
+                description = 'Your lockpick broke!',
+                type = 'error'
+            })
+        end
+        
+        -- Unlock the vehicle
+        SetVehicleDoorsLocked(vehicle, 1)
+        TriggerClientEvent('ox_lib:notify', src, {
+            title = 'Success',
+            description = 'Vehicle unlocked!',
+            type = 'success'
+        })
+    end
+end)
+
+-- Register the parachute as a usable item
+exports('parachute', function(event, item, inventory, slot, data)
+    if event == 'usingItem' then
+        -- Give the player a parachute
+        TriggerClientEvent('reusable_parachute:use', inventory.id)
+        
+        -- Remove the item (it will be given back when they land)
+        exports.ox_inventory:RemoveItem(inventory.id, 'parachute', 1, nil, slot)
+    end
+end)
+
+-- Give parachute back after landing
+RegisterNetEvent('reusable_parachute:packAway', function()
+    local src = source
+    exports.ox_inventory:AddItem(src, 'parachute', 1)
+    TriggerClientEvent('ox_lib:notify', src, {
+        title = 'Parachute',
+        description = 'Parachute packed away',
+        type = 'success'
+    })
+end)
+
+exports('hollow_cake', function(event, item, inventory, slot, data)
+    if event == 'usingItem' then
+        local player = inventory.id
+        
+        -- Get the actual item from the inventory
+        local currentItem = inventory.items[slot]
+        if not currentItem then 
+            print('ERROR: No item found in slot ' .. slot)
+            return 
+        end
+        
+        print('=== CAKE DEBUG ===')
+        print('Player: ' .. player)
+        print('Slot: ' .. slot)
+        print('Item name: ' .. currentItem.name)
+        print('Current metadata: ' .. json.encode(currentItem.metadata or {}))
+        
+        -- Get or create the unique cake ID
+        local metadata = currentItem.metadata or {}
+        local cakeId = metadata.cakeId
+        
+        if not cakeId then
+            -- First time opening - create new stash
+            cakeId = 'cake_' .. math.random(100000, 999999) .. '_' .. math.random(100000, 999999)
+            print('NEW CAKE - Generated ID: ' .. cakeId)
+            
+            -- Set the metadata
+            metadata.cakeId = cakeId
+            exports.ox_inventory:SetMetadata(player, slot, metadata)
+        else
+            print('EXISTING CAKE - Using ID: ' .. cakeId)
+        end
+        
+        -- Register and open the stash
+        exports.ox_inventory:RegisterStash(cakeId, 'Inside the Cake', 1, 5000)
+        exports.ox_inventory:forceOpenInventory(player, 'stash', cakeId)
+        
+        print('=== END DEBUG ===')
+    end
+end)
+
+--[[exports.ox_inventory:AddItem(source, 'scuba_tank', 1, {
+    serial = tankSerial,
+    description = 'Serial: ' .. tankSerial .. ' | Oxygen: 100%'
+})]]

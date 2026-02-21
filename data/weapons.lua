@@ -227,7 +227,7 @@ return {
 		['WEAPON_FIREEXTINGUISHER'] = {
 			label = 'Fire Extinguisher',
 			weight = 8616,
-            durability = 0.006
+			durability = 0.006
 		},
 
 		['WEAPON_FIREWORK'] = {
@@ -584,6 +584,13 @@ return {
 			ammoname = 'ammo-shotgun'
 		},
 
+		['WEAPON_HUNTINGRIFLE'] = {
+			label = 'Hunting Rifle',
+			weight = 3500,
+			durability = 0.03,
+			ammoname = 'ammo-rifle',
+		},
+
 		['WEAPON_SMG'] = {
 			label = 'SMG',
 			weight = 3084,
@@ -716,6 +723,247 @@ return {
 			weight = 600,
 			throwable = true,
 		},
+		['WEAPON_SLEDGEHAMMER'] = {
+			label = 'Sledge Hammer',
+			weight = 1200,
+			durability = 0.1,
+		},
+
+		['WEAPON_FISH'] = {
+			label = 'Fish',
+			weight = 30,
+		},
+		['WEAPON_CATLAUNCHER'] = {
+			label = 'Cat Launcher',
+			weight = 5000,
+			durability = 0.3,
+			ammoname = 'ammo-rocket'
+		},
+		['WEAPON_VIKINGAXE'] = {
+			label = 'Viking Axe',
+			weight = 500,
+			durability = 0.1,
+		},
+
+		------------------------
+		------------------------
+		------------------------
+		['WEAPON_BOLTCUTTER'] = {
+			label = 'Bolt Cutter',
+			weight = 450,
+		},
+		['WEAPON_PLUNGER'] = {
+			label = 'Plunger',
+			weight = 450,
+		},
+		['WEAPON_WALKINGSTICK'] = {
+			label = 'Walking Stick',
+			weight = 450,
+		},
+		['WEAPON_SKATEBOARD'] = {
+			label = 'Skateboard',
+			weight = 450,
+		},
+		['WEAPON_PIMPCANE'] = {
+			label = 'Pimp Cane',
+			weight = 450,
+		},
+		['WEAPON_PIPEWRENCH'] = {
+			label = 'Pipe Wrench',
+			weight = 450,
+		},
+		['WEAPON_STOOL'] = {
+			label = 'Stool',
+			weight = 450,
+		},
+		['WEAPON_CHAINKNUCKLE'] = {
+			label = 'Chain Knuckle',
+			weight = 450,
+		},
+		['WEAPON_ROBOTGAUNTLET'] = {
+			label = 'Robot Gauntlet',
+			weight = 450,
+		},
+		['WEAPON_BBSWORD'] = {
+			label = 'BB Sword',
+			weight = 450,
+		},
+		['WEAPON_HALBERD'] = {
+			label = 'Halberd',
+			weight = 450,
+		},
+--[[		['WEAPON_REDSABER'] = {
+			label = 'Red Saber',
+			weight = 450,
+		},
+		['WEAPON_BLUESABER'] = {
+			label = 'Blue Saber',
+			weight = 450,
+		},
+		['WEAPON_PINKSABER'] = {
+			label = 'Pink Saber',
+			weight = 450,
+		},
+		['WEAPON_LIGHTBLUESABER'] = {
+			label = 'LightBlue Saber',
+			weight = 450,
+		},
+		['WEAPON_GREENSABER'] = {
+			label = 'Green Saber',
+			weight = 450,
+		},
+		['WEAPON_PURPLESABER'] = {
+			label = 'Purple Saber',
+			weight = 450,
+		},
+		['WEAPON_YELLOWSABER'] = {
+			label = 'Yellow Saber',
+			weight = 450,
+		},
+		['WEAPON_WARHAMMER'] = {
+			label = 'War Hammer',
+			weight = 450,
+		},
+		['WEAPON_DIAMONDPICKAXE'] = {
+			label = 'Diamond Pickaxe',
+			weight = 450,
+		},
+		['WEAPON_DIAMONDAXE'] = {
+			label = 'Diamond axe',
+			weight = 450,
+		},
+		['WEAPON_DIAMONDSWORD'] = {
+			label = 'Diamond Sword',
+			weight = 450,
+		},
+		['WEAPON_MAULSABER'] = {
+			label = 'Maul Saber',
+			weight = 450,
+		},]]
+		['WEAPON_WHITESABER'] = {
+			label = 'White Saber',
+			weight = 450,
+		},
+		['WEAPON_COBBSBAT'] = {
+			label = 'Cobbs Bat',
+			weight = 450,
+		},
+		['WEAPON_BROOM'] = {
+			label = 'Broom Stick',
+			weight = 450,
+		},
+		['WEAPON_ZKVTWO'] = {
+			label = 'Zombie Knife',
+			weight = 450,
+		},
+		['WEAPON_BADMINTONBAT'] = {
+			label = 'Badminton Bat',
+			weight = 450,
+		},
+		['WEAPON_PAN'] = {
+			label = 'Pan',
+			weight = 450,
+		},
+		['WEAPON_GLASSSHANK'] = {
+			label = 'Prison Glass Shank',
+			weight = 450,
+		},
+		['WEAPON_SCALPEL'] = {
+			label = 'Scalpel',
+			weight = 450,
+		},
+		['WEAPON_CRICKETBAT'] = {
+			label = 'Cricket Bat',
+			weight = 450,
+		},
+		['WEAPON_SPIKEDCRICKETBAT'] = {
+			label = 'SpikedCricket Bat',
+			weight = 450,
+		},
+		['WEAPON_POOLSTICK'] = {
+			label = 'Pool Stick',
+			weight = 450,
+		},
+		['WEAPON_RUBBERCHICKEN'] = {
+			label = 'Rubber Chicken',
+			weight = 450,
+		},
+		['WEAPON_BOXCUTTER'] = {
+			label = 'Box Cutter',
+			weight = 450,
+		},
+		['WEAPON_TOOTHBRUSHSHANK'] = {
+			label = 'Toothbrush Shank',
+			weight = 450,
+		},
+		['WEAPON_RAZORBLADE'] = {
+			label = 'Razor Blade',
+			weight = 450,
+		},
+		['WEAPON_REDKATANA'] = {
+			label = 'Redhandle Katana',
+			weight = 450,
+		},
+		['WEAPON_TENNISRACKET'] = {
+			label = 'Tennis Racket',
+			weight = 450,
+		},
+		['WEAPON_DEVILSFORK'] = {
+			label = 'Devils Fork',
+			weight = 450,
+		},
+		['WEAPON_ELSWORD'] = {
+			label = 'El Sword',
+			weight = 450,
+		},
+		['WEAPON_LONGSWORD'] = {
+			label = 'Long Sword',
+			weight = 450,
+		},
+		['WEAPON_KATAR'] = {
+			label = 'Scissor Katar',
+			weight = 450,
+		},
+		['WEAPON_DRILL'] = {
+			label = 'Drill',
+			weight = 450,
+		},
+		['WEAPON_SPANNER'] = {
+			label = 'Spanner',
+			weight = 450,
+		},
+		['WEAPON_CHAINSAWSWORD'] = {
+			label = 'Chainsaw Sword',
+			weight = 450,
+		},
+		['WEAPON_SURGICALSAW'] = {
+			label = 'Surgical Saw',
+			weight = 450,
+		},
+		['WEAPON_SAW'] = {
+			label = 'Saw',
+			weight = 450,
+		},
+		['WEAPON_BARBELL'] = {
+			label = 'Barbell',
+			weight = 450,
+		},
+		['WEAPON_DUMBELL'] = {
+			label = 'Dumbell',
+			weight = 450,
+		},
+
+		['WEAPON_NAILGUN'] = {
+			label = 'Nail Gun',
+			weight = 3300,
+			durability = 0.03,
+			ammoname = 'ammo-nail',
+		},
+		['WEAPON_FLAMETHROWER'] = {
+			label = 'Flamethrower',
+			weight = 200,
+			ammoname = 'ammo-flamethrower'
+		},
 	},
 
 	Components = {
@@ -740,7 +988,7 @@ return {
 			weight = 280,
 			type = 'muzzle',
 			client = {
-                image = 'at_suppressor.png',
+				image = 'at_suppressor.png',
 				component = {
 					`COMPONENT_AT_PI_SUPP`,
 					`COMPONENT_AT_PI_SUPP_02`,
@@ -756,7 +1004,7 @@ return {
 			weight = 280,
 			type = 'muzzle',
 			client = {
-                image = 'at_suppressor.png',
+				image = 'at_suppressor.png',
 				component = {
 					`COMPONENT_AT_AR_SUPP`,
 					`COMPONENT_AT_AR_SUPP_02`,
@@ -804,7 +1052,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_extended.png',
+				image = 'at_clip_extended.png',
 				component = {
 					`COMPONENT_APPISTOL_CLIP_02`,
 					`COMPONENT_CERAMICPISTOL_CLIP_02`,
@@ -816,7 +1064,7 @@ return {
 					`COMPONENT_SNSPISTOL_CLIP_02`,
 					`COMPONENT_SNSPISTOL_MK2_CLIP_02`,
 					`COMPONENT_VINTAGEPISTOL_CLIP_02`,
-                    `COMPONENT_TECPISTOL_CLIP_02`,
+					`COMPONENT_TECPISTOL_CLIP_02`,
 				},
 				usetime = 2500
 			}
@@ -827,7 +1075,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_extended.png',
+				image = 'at_clip_extended.png',
 				component = {
 					`COMPONENT_ASSAULTSMG_CLIP_02`,
 					`COMPONENT_COMBATPDW_CLIP_02`,
@@ -846,7 +1094,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_extended2.png',
+				image = 'at_clip_extended2.png',
 				component = {
 					`COMPONENT_ASSAULTSHOTGUN_CLIP_02`,
 					`COMPONENT_HEAVYSHOTGUN_CLIP_02`,
@@ -860,7 +1108,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_extended2.png',
+				image = 'at_clip_extended2.png',
 				component = {
 					`COMPONENT_ADVANCEDRIFLE_CLIP_02`,
 					`COMPONENT_ASSAULTRIFLE_CLIP_02`,
@@ -886,7 +1134,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_drum.png',
+				image = 'at_clip_drum.png',
 				component = {
 					`COMPONENT_GUSENBERG_CLIP_02`,
 					`COMPONENT_MG_CLIP_02`,
@@ -902,7 +1150,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_extended2.png',
+				image = 'at_clip_extended2.png',
 				component = {
 					`COMPONENT_HEAVYSNIPER_MK2_CLIP_02`,
 					`COMPONENT_MARKSMANRIFLE_CLIP_02`,
@@ -917,7 +1165,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_drum.png',
+				image = 'at_clip_drum.png',
 				component = {
 					`COMPONENT_COMBATPDW_CLIP_03`,
 					`COMPONENT_MACHINEPISTOL_CLIP_03`,
@@ -932,7 +1180,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_drum.png',
+				image = 'at_clip_drum.png',
 				component = {
 					`COMPONENT_HEAVYSHOTGUN_CLIP_03`
 				},
@@ -945,7 +1193,7 @@ return {
 			type = 'magazine',
 			weight = 280,
 			client = {
-                image = 'at_clip_drum.png',
+				image = 'at_clip_drum.png',
 				component = {
 					`COMPONENT_ASSAULTRIFLE_CLIP_03`,
 					`COMPONENT_COMPACTRIFLE_CLIP_03`,
@@ -1020,7 +1268,8 @@ return {
 			weight = 280,
 			client = {
 				component = {
-					`COMPONENT_AT_SCOPE_LARGE_MK2`
+					`COMPONENT_AT_SCOPE_LARGE_MK2`,
+					`COMPONENT_REM700_SCOPE_LARGE`
 				},
 				usetime = 2500
 			}
@@ -1779,102 +2028,153 @@ return {
 				usetime = 2500
 			}
 		},
+				['w_pi_nailgun_mag1'] = {
+			label = 'Nailgun Clip',
+			type = 'magazine',
+			weight = 280,
+			client = {
+                image = 'w_pi_nailgun_mag1.png',
+				component = {
+					`COMPONENT_NAILGUN_CLIP_01`,
+				},
+				usetime = 2500
+			}
+		},
+		['w_pi_nailgun_mag2'] = {
+			label = 'Nailgun Drum Clip',
+			type = 'magazine',
+			weight = 280,
+			client = {
+                image = 'w_pi_nailgun_mag2.png',
+				component = {
+					`COMPONENT_NAILGUN_CLIP_02`,
+				},
+				usetime = 2500
+			}
+		},
 	},
 
 	Ammo = {
 		['ammo-22'] = {
 			label = '.22 Long Rifle',
 			weight = 3,
+			image = 'ammo-22.png',
 		},
 
 		['ammo-38'] = {
 			label = '.38 LC',
 			weight = 15,
+			image = 'ammo-38.png',
 		},
 
 		['ammo-44'] = {
 			label = '.44 Magnum',
 			weight = 16,
+			image = 'ammo-44.png',
 		},
 
 		['ammo-45'] = {
 			label = '.45 ACP',
 			weight = 15,
+			image = 'ammo-45.png',
 		},
 
 		['ammo-50'] = {
 			label = '.50 AE',
 			weight = 45,
+			image = 'ammo-50.png',
 		},
 
 		['ammo-9'] = {
 			label = '9mm',
 			weight = 7,
+			image = 'ammo-9.png',
 		},
 
 		['ammo-firework'] = {
 			label = 'Firework',
 			weight = 200,
+			image = 'ammo-firework.png',
 		},
 
 		['ammo-flare'] = {
 			label = 'Flare round',
 			weight = 38,
+			image = 'ammo-flare.png',
 		},
 
 		['ammo-grenade'] = {
 			label = '40mm Explosive',
 			weight = 400,
+			image = 'ammo-grenade.png',
 		},
 
 		['ammo-heavysniper'] = {
 			label = '.50 BMG',
 			weight = 51,
+			image = 'ammo-heavysniper.png',
 		},
 
 		['ammo-laser'] = {
 			label = 'Laser charge',
 			weight = 1,
+			image = 'ammo-laser.png',
 		},
 
 		['ammo-musket'] = {
 			label = '.50 Ball',
 			weight = 38,
+			image = 'ammo-musket.png',
 		},
 
 		['ammo-railgun'] = {
 			label = 'Railgun charge',
 			weight = 150,
+			image = 'ammo-railgun.png',
 		},
 
 		['ammo-rifle'] = {
 			label = '5.56x45',
 			weight = 4,
+			image = 'ammo-rifle.png',
 		},
 
 		['ammo-rifle2'] = {
 			label = '7.62x39',
 			weight = 8,
+			image = 'ammo-rifle2.png',
 		},
 
 		['ammo-rocket'] = {
 			label = 'Rocket',
 			weight = 500,
+			image = 'ammo-rocket.png',
 		},
 
 		['ammo-shotgun'] = {
 			label = '12 Gauge',
 			weight = 38,
+			image = 'ammo-shotgun.png',
 		},
 
 		['ammo-sniper'] = {
 			label = '7.62x51',
 			weight = 9,
+			image = 'ammo-sniper.png',
 		},
 
 		['ammo-emp'] = {
 			label = 'EMP round',
 			weight = 400,
+			image = 'ammo-emp.png',
+		},
+		['ammo-flamethrower'] = {
+			label = 'Fuel ',
+			weight = 1,
+		},
+		['ammo-nail'] = {
+			label = 'Nail Ammo ',
+			weight = 1,
 		},
 	}
 }

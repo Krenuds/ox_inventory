@@ -2,3 +2,7 @@ modules/logs/**/
 .cfg
 node_modules
 .idea
+BUY_FLOW.md
+data/lation_config.lua
+web/pnpm-lock.yaml
+*.md

@@ -32,6 +32,17 @@ end
 ---@param point CPoint
 local function onEnterShop(point)
 	if not point.entity then
+		-- Clean up duplicate peds from server restart / soft reconnect scenarios
+		local playerPed = PlayerPedId()
+		local peds = GetGamePool('CPed')
+		for i = 1, #peds do
+			local ped = peds[i]
+			if ped ~= playerPed and GetEntityModel(ped) == point.ped and #(point.coords - GetEntityCoords(ped)) < 1.0 then
+				SetEntityAsMissionEntity(ped, false, true)
+				DeleteEntity(ped)
+			end
+		end
+
 		local model = lib.requestModel(point.ped)
 
 		if not model then return end

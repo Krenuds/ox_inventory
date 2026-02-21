@@ -1,3 +1,8 @@
+local hasUsedParachute = false
+local parachuteSlot = nil
+local parachuteObject = nil
+local isWearingParachute = false
+
 if not lib then return end
 
 require 'modules.bridge.client'
@@ -79,9 +84,9 @@ end
 
 local defaultInventory = {
 	type = 'newdrop',
-	slots = shared.dropslots,
+	slots = shared.playerslots,
 	weight = 0,
-	maxWeight = shared.dropweight,
+	maxWeight = shared.playerweight,
 	items = {}
 }
 
@@ -162,23 +167,23 @@ function client.openInventory(inv, data)
     local left, right, accessError
 
     if inv == 'player' and data ~= cache.serverId then
-        local targetId, targetPed, serverId
+        local targetId, targetPed
 
         if not data then
             targetId, targetPed = Utils.GetClosestPlayer()
-            serverId = targetId and GetPlayerServerId(targetId)
-            data = serverId
+            data = targetId and GetPlayerServerId(targetId)
         else
-            serverId = type(data) == 'table' and data.id or data
+            local serverId = type(data) == 'table' and data.id or data
+
+            if serverId == cache.serverId then return end
+
             targetId = serverId and GetPlayerFromServerId(serverId)
             targetPed = targetId and GetPlayerPed(targetId)
         end
 
-        if serverId == cache.serverId then return end
-
         local targetCoords = targetPed and GetEntityCoords(targetPed)
 
-        if not targetCoords or #(targetCoords - GetEntityCoords(playerPed)) > 1.8 or (not client.hasGroup(shared.police) and not Player(serverId).state.canSteal) then
+        if not targetCoords or #(targetCoords - GetEntityCoords(playerPed)) > 1.8 or not (client.hasGroup(shared.police) or canOpenTarget(targetPed)) then
             return lib.notify({ id = 'inventory_right_access', type = 'error', description = locale('inventory_right_access') })
         end
     end
@@ -196,9 +201,7 @@ function client.openInventory(inv, data)
 
         left, right, accessError = lib.callback.await('ox_inventory:openCraftingBench', 200, data.id, data.index)
 
-        if left then
-            right = CraftingBenches[data.id]
-
+        if left and right then
             if not right?.items then return end
 
             local coords, distance
@@ -269,7 +272,7 @@ function client.openInventory(inv, data)
     SetNuiFocusKeepInput(true)
     closeTrunk()
 
-    if client.screenblur then Utils.blurIn() end
+    if client.screenblur then TriggerScreenblurFadeIn(0) end
 
     currentInventory = right or defaultInventory
     left.items = PlayerData.inventory
@@ -326,7 +329,7 @@ RegisterNetEvent('ox_inventory:forceOpenInventory', function(left, right)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
 
-	if client.screenblur then Utils.blurIn() end
+	if client.screenblur then TriggerScreenblurFadeIn(0) end
 
 	currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
@@ -737,14 +740,10 @@ local invHotkeys = false
 
 ---@type function?
 local function registerCommands()
-	if client.enablestealcommand then
-		RegisterCommand('steal', openNearbyInventory, false)
-	end
+	RegisterCommand('steal', openNearbyInventory, false)
 
 	local function openGlovebox(vehicle)
 		if not IsPedInAnyVehicle(playerPed, false) or not NetworkGetEntityIsNetworked(vehicle) then return end
-
-		if IsEntityDead(vehicle) then return end
 
 		local vehicleHash = GetEntityModel(vehicle)
 		local vehicleClass = GetVehicleClass(vehicle)
@@ -856,7 +855,7 @@ local function registerCommands()
 		description = locale('disable_hotbar'),
 		defaultKey = client.keys[3],
 		onPressed = function()
-			if EnableWeaponWheel or not invHotkeys or IsNuiFocused() or lib.progressActive() then return end
+			if EnableWeaponWheel or IsNuiFocused() or lib.progressActive() then return end
 			SendNUIMessage({ action = 'toggleHotbar' })
 		end
 	})
@@ -885,7 +884,7 @@ function client.closeInventory(server)
 		invOpen = nil
 		SetNuiFocus(false, false)
 		SetNuiFocusKeepInput(false)
-		Utils.blurOut()
+		TriggerScreenblurFadeOut(0)
 		closeTrunk()
 		SendNUIMessage({ action = 'closeInventory' })
 		SetInterval(client.interval, 200)
@@ -1002,6 +1001,207 @@ RegisterNetEvent('ox_inventory:inventoryReturned', function(data)
 	updateInventory(items, data[3])
 end)
 
+CreateThread(function()
+    while true do
+        Wait(100)
+        
+        if hasUsedParachute and isWearingParachute then
+            local ped = PlayerPedId()
+            local state = GetPedParachuteState(ped)
+            
+            -- State 2 = parachute deployed (opened)
+            if state == 2 then
+                -- Wait for landing
+                while GetPedParachuteState(ped) == 2 do
+                    Wait(100)
+                end
+                
+                -- Landed
+                Wait(1000) -- Small delay to ensure proper landing
+                
+                -- Remove the parachute appearance
+                SetPedComponentVariation(ped, 5, 0, 0, 0)
+                
+                -- Return to inventory
+                TriggerServerEvent('reusable_parachute:landed', parachuteSlot)
+                hasUsedParachute = false
+                parachuteSlot = nil
+                isWearingParachute = false
+            end
+        end
+    end
+end)
+
+-- Export function with toggle functionality
+exports('parachute', function(data, slot)
+    if not PlayerData or not PlayerData.loaded then
+        return
+    end
+    
+    local playerPed = PlayerPedId()
+    
+    -- If already have a parachute, toggle it off
+    if hasUsedParachute and parachuteSlot == slot.slot then
+        if isWearingParachute then
+            -- Take off the parachute
+            SetPedComponentVariation(playerPed, 5, 0, 0, 0)
+            RemoveWeaponFromPed(playerPed, `GADGET_PARACHUTE`)
+            isWearingParachute = false
+            
+            lib.notify({
+                title = 'Parachute',
+                description = 'Parachute put away - use again to equip',
+                type = 'info'
+            })
+        else
+            -- Put the parachute back on
+            if IsPedInAnyVehicle(playerPed, false) then
+                lib.notify({
+                    title = 'Parachute',
+                    description = 'Cannot equip parachute in vehicle',
+                    type = 'error'
+                })
+                return
+            end
+            
+            GiveWeaponToPed(playerPed, `GADGET_PARACHUTE`, 1, false, true)
+            SetPedComponentVariation(playerPed, 5, 26, 0, 0)
+            isWearingParachute = true
+            
+            lib.notify({
+                title = 'Parachute',
+                description = 'Parachute equipped',
+                type = 'success'
+            })
+        end
+        return
+    end
+    
+    -- Basic checks for first time use
+    if IsPedInAnyVehicle(playerPed, false) then
+        lib.notify({
+            title = 'Parachute',
+            description = 'Cannot use parachute in vehicle',
+            type = 'error'
+        })
+        return
+    end
+    
+    if IsEntityInWater(playerPed) then
+        lib.notify({
+            title = 'Parachute',
+            description = 'Cannot use parachute in water',
+            type = 'error'
+        })
+        return
+    end
+    
+    -- Give the parachute gadget
+    GiveWeaponToPed(playerPed, `GADGET_PARACHUTE`, 1, false, true)
+    
+    -- Apply the native parachute bag appearance
+    SetPedComponentVariation(playerPed, 5, 26, 0, 0)
+    
+    -- Set our tracking variables
+    hasUsedParachute = true
+    parachuteSlot = slot.slot
+    isWearingParachute = true
+    
+    -- Remove from inventory
+    TriggerServerEvent('reusable_parachute:used', slot.slot)
+    
+    lib.notify({
+        title = 'Parachute',
+        description = 'Parachute equipped - use again to put away',
+        type = 'success'
+    })
+end)
+
+-- Cleanup on death
+AddEventHandler('gameEventTriggered', function(event, args)
+    if event == 'CEventNetworkEntityDamage' then
+        local victim = args[1]
+        if victim == PlayerPedId() and IsEntityDead(victim) then
+            -- Remove parachute appearance
+            SetPedComponentVariation(PlayerPedId(), 5, 0, 0, 0)
+            hasUsedParachute = false
+            parachuteSlot = nil
+            isWearingParachute = false
+        end
+    end
+end)
+
+-- Handle vehicles
+lib.onCache('vehicle', function(vehicle)
+    if hasUsedParachute and isWearingParachute and vehicle then
+        -- Temporarily remove the parachute bag when in vehicle
+        SetPedComponentVariation(PlayerPedId(), 5, 0, 0, 0)
+        
+        -- Re-apply when exiting vehicle
+        CreateThread(function()
+            while cache.vehicle do
+                Wait(100)
+            end
+            if hasUsedParachute and isWearingParachute then
+                SetPedComponentVariation(PlayerPedId(), 5, 65, 0, 0)
+            end
+        end)
+    end
+end)
+
+-- Optional: Add a command to put away parachute
+RegisterCommand('packparachute', function()
+    if hasUsedParachute and isWearingParachute then
+        local playerPed = PlayerPedId()
+        
+        -- Can't pack while falling or parachuting
+        if GetPedParachuteState(playerPed) ~= -1 then
+            lib.notify({
+                title = 'Parachute',
+                description = 'Cannot pack parachute while in use',
+                type = 'error'
+            })
+            return
+        end
+        
+        -- Pack it away
+        SetPedComponentVariation(playerPed, 5, 0, 0, 0)
+        RemoveWeaponFromPed(playerPed, `GADGET_PARACHUTE`)
+        isWearingParachute = false
+        
+        lib.notify({
+            title = 'Parachute',
+            description = 'Parachute packed away',
+            type = 'success'
+        })
+    end
+end)
+
+-- Cleanup functions
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        if parachuteObject then
+            DeleteObject(parachuteObject)
+            parachuteObject = nil
+        end
+    end
+end)
+
+-- Clean up on player death
+AddEventHandler('gameEventTriggered', function(event, args)
+    if event == 'CEventNetworkEntityDamage' then
+        local victim = args[1]
+        if victim == PlayerPedId() and IsEntityDead(victim) then
+            if parachuteObject then
+                DeleteObject(parachuteObject)
+                parachuteObject = nil
+            end
+            hasUsedParachute = false
+            parachuteSlot = nil
+        end
+    end
+end)
+
 RegisterNetEvent('ox_inventory:inventoryConfiscated', function(message)
 	if source == '' then return end
 	if message then lib.notify({ description = locale('items_confiscated') }) end
@@ -1023,10 +1223,9 @@ end)
 ---@param point CPoint
 local function nearbyDrop(point)
 	if not point.instance or point.instance == currentInstance then
-        DrawMarker(client.dropmarker.type, point.coords.x, point.coords.y, point.coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, client.dropmarker.scale[1], client.dropmarker.scale[2], client.dropmarker.scale[3],
-        ---@diagnostic disable-next-line: param-type-mismatch
-        client.dropmarker.colour[1], client.dropmarker.colour[2], client.dropmarker.colour[3], 222, false, false, 0, true, false, false, false)
-    end
+		---@diagnostic disable-next-line: param-type-mismatch
+		DrawMarker(2, point.coords.x, point.coords.y, point.coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 150, 30, 30, 222, false, false, 0, true, false, false, false)
+	end
 end
 
 ---@param point CPoint
@@ -1338,10 +1537,7 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 
 	PlayerData.loaded = true
 
-	if not client.disablesetupnotification then
-		lib.notify({ description = locale('inventory_setup') })
-	end
-
+	-- lib.notify({ description = locale('inventory_setup') })
 	Shops.refreshShops()
 	Inventory.Stashes()
 	Inventory.Evidence()
@@ -1351,12 +1547,6 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 	TriggerEvent('ox_inventory:updateInventory', PlayerData.inventory)
 
 	client.interval = SetInterval(function()
-        local canSteal = canOpenTarget(playerPed)
-
-        if canSteal ~= plyState.canSteal then
-            plyState:set('canSteal', canSteal, true)
-        end
-
 		if invOpen == false then
 			playerCoords = GetEntityCoords(playerPed)
 
@@ -1378,14 +1568,14 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 						local ped = GetPlayerPed(id)
 						local pedCoords = GetEntityCoords(ped)
 
-						if not id or #(playerCoords - pedCoords) > maxDistance or (not client.hasGroup(shared.police) and not Player(currentInventory.id).state.canSteal) then
+						if not id or #(playerCoords - pedCoords) > maxDistance or not (client.hasGroup(shared.police) or canOpenTarget(ped)) then
 							client.closeInventory()
 							lib.notify({ id = 'inventory_lost_access', type = 'error', description = locale('inventory_lost_access') })
 						else
 							TaskTurnPedToFaceCoord(playerPed, pedCoords.x, pedCoords.y, pedCoords.z, 50)
 						end
 
-					elseif currentInventory.coords and (#(playerCoords - currentInventory.coords) > maxDistance or canSteal) then
+					elseif currentInventory.coords and (#(playerCoords - currentInventory.coords) > maxDistance or canOpenTarget(playerPed)) then
 						client.closeInventory()
 						lib.notify({ id = 'inventory_lost_access', type = 'error', description = locale('inventory_lost_access') })
 					end
@@ -1586,7 +1776,7 @@ RegisterNetEvent('ox_inventory:viewInventory', function(left, right)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
 
-	if client.screenblur then Utils.blurIn() end
+	if client.screenblur then TriggerScreenblurFadeIn(0) end
 
 	currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
@@ -1770,9 +1960,7 @@ RegisterNUICallback('exit', function(_, cb)
 	cb(1)
 end)
 
-lib.callback.register('ox_inventory:startCrafting', function(id, recipe)
-	recipe = CraftingBenches[id].items[recipe]
-
+lib.callback.register('ox_inventory:startCrafting', function(recipe)
 	return lib.progressCircle({
 		label = locale('crafting_item', recipe.metadata?.label or Items[recipe.name].label),
 		duration = recipe.duration or 3000,
@@ -1782,9 +1970,10 @@ lib.callback.register('ox_inventory:startCrafting', function(id, recipe)
 			combat = true,
 		},
 		anim = {
-			dict = 'anim@amb@clubhouse@tutorial@bkr_tut_ig3@',
-			clip = 'machinic_loop_mechandplayer',
-		}
+			dict = recipe.anim?.dict or 'anim@amb@clubhouse@tutorial@bkr_tut_ig3@',
+			clip = recipe.anim?.clip or 'machinic_loop_mechandplayer',
+		},
+		prop = recipe.prop or {}
 	})
 end)
 
@@ -1891,6 +2080,26 @@ RegisterNUICallback('buyItem', function(data, cb)
 	cb(response)
 end)
 
+RegisterNUICallback('sellItem', function(data, cb)
+	---@type boolean, false | { [1]: number, [2]: SlotWithItem | { slot: number }, [3]: number }, NotifyProps
+	local response, data, message = lib.callback.await('ox_inventory:sellItem', 100, data)
+
+	if data then
+		updateInventory({
+			{
+				item = data[2],
+				inventory = cache.serverId
+			}
+		}, data[3])
+	end
+
+	if message then
+		lib.notify(message)
+	end
+
+	cb(response)
+end)
+
 RegisterNUICallback('craftItem', function(data, cb)
 	cb(true)
 
@@ -1916,4 +2125,130 @@ lib.callback.register('ox_inventory:getVehicleData', function(netid)
 	if entity then
 		return GetEntityModel(entity), GetVehicleClass(entity)
 	end
+end)
+
+
+local usingBinoculars = false
+local binocularsObject = nil
+local fov = 70.0
+
+-- Cleanup function
+local function stopBinoculars()
+    if usingBinoculars then
+        usingBinoculars = false
+        ClearPedTasks(cache.ped)
+        
+        if binocularsObject then
+            DeleteObject(binocularsObject)
+            binocularsObject = nil
+        end
+        
+        -- Reset camera
+        RenderScriptCams(false, false, 0, true, false)
+        DestroyCam(cam, false)
+        cam = nil
+        
+        -- Reset FOV
+        SetCamActive(cam, false)
+        
+        -- Re-enable controls
+        TriggerEvent('ox_inventory:disableControls', false)
+        
+        lib.notify({
+            title = 'Binoculars',
+            description = 'Put away binoculars',
+            type = 'success'
+        })
+    end
+end
+
+-- Export function for binoculars
+exports('binoculars', function(data, slot)
+    if usingBinoculars then
+        stopBinoculars()
+        return
+    end
+    
+    -- Play animation
+    lib.requestAnimDict('amb@world_human_binoculars@male@enter')
+    TaskPlayAnim(cache.ped, 'amb@world_human_binoculars@male@enter', 'enter', 8.0, -8.0, -1, 49, 0, false, false, false)
+    Wait(500)
+    
+    lib.requestAnimDict('amb@world_human_binoculars@male@idle_a')
+    TaskPlayAnim(cache.ped, 'amb@world_human_binoculars@male@idle_a', 'idle_a', 8.0, -8.0, -1, 49, 0, false, false, false)
+    
+    -- Create binoculars prop
+    lib.requestModel('prop_binoc_01')
+    binocularsObject = CreateObject('prop_binoc_01', 0.0, 0.0, 0.0, true, true, true)
+    AttachEntityToEntity(binocularsObject, cache.ped, GetPedBoneIndex(cache.ped, 28422), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+    
+    usingBinoculars = true
+    
+    -- Create camera
+    cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+    AttachCamToEntity(cam, cache.ped, 0.0, 0.0, 1.0, true)
+    SetCamRot(cam, GetEntityRotation(cache.ped, 2), 2)
+    SetCamFov(cam, fov)
+    RenderScriptCams(true, false, 0, true, false)
+    
+    -- Disable some controls while using binoculars
+    CreateThread(function()
+        while usingBinoculars do
+            Wait(0)
+            
+            -- Control zoom with scroll wheel
+            if IsControlJustPressed(0, 241) then -- Scroll wheel up
+                fov = math.max(fov - 10, 5.0)
+                SetCamFov(cam, fov)
+            elseif IsControlJustPressed(0, 242) then -- Scroll wheel down
+                fov = math.min(fov + 10, 70.0)
+                SetCamFov(cam, fov)
+            end
+            
+            -- Update camera rotation based on player look
+            local rot = GetEntityRotation(cache.ped, 2)
+            SetCamRot(cam, rot.x, rot.y, rot.z, 2)
+            
+            -- Exit on right click or E
+            if IsControlJustPressed(0, 25) or IsControlJustPressed(0, 38) then
+                stopBinoculars()
+            end
+            
+            -- Disable some controls
+            DisableControlAction(0, 24, true) -- Attack
+            DisableControlAction(0, 25, true) -- Aim
+            DisableControlAction(0, 37, true) -- Select Weapon
+            DisableControlAction(0, 44, true) -- Cover
+            DisableControlAction(0, 45, true) -- Reload
+            DisableControlAction(0, 140, true) -- Melee Attack Light
+            DisableControlAction(0, 141, true) -- Melee Attack Heavy
+            DisableControlAction(0, 142, true) -- Melee Attack Alternate
+            DisableControlAction(0, 143, true) -- Melee Block
+            DisableControlAction(0, 263, true) -- Melee Attack 1
+            DisableControlAction(0, 264, true) -- Melee Attack 2
+            
+            -- Show instructions
+            BeginTextCommandDisplayHelp("STRING")
+            AddTextComponentSubstringPlayerName("Use ~INPUT_PICKUP~ to put away binoculars~n~Scroll to zoom in/out")
+            EndTextCommandDisplayHelp(0, false, true, -1)
+        end
+    end)
+    
+    lib.notify({
+        title = 'Binoculars',
+        description = 'Press E or Right-Click to put away',
+        type = 'info'
+    })
+end)
+
+-- Cleanup on resource stop
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        stopBinoculars()
+    end
+end)
+
+-- Also cleanup if inventory closes
+RegisterNetEvent('ox_inventory:closeInventory', function()
+    stopBinoculars()
 end)

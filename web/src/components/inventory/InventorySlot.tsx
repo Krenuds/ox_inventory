@@ -1,10 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { DragSource, Inventory, InventoryType, Slot, SlotWithItem } from '../../typings';
 import { useDrag, useDragDropManager, useDrop } from 'react-dnd';
-import { useAppDispatch } from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { selectRightInventory } from '../../store/inventory';
 import WeightBar from '../utils/WeightBar';
 import { onDrop } from '../../dnd/onDrop';
 import { onBuy } from '../../dnd/onBuy';
+import { onSell } from '../../dnd/onSell';
 import { Items } from '../../store/items';
 import { canCraftItem, canPurchaseItem, getItemUrl, isSlotWithItem } from '../../helpers';
 import { onUse } from '../../dnd/onUse';
@@ -30,6 +32,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
   const manager = useDragDropManager();
   const dispatch = useAppDispatch();
   const timerRef = useRef<number | null>(null);
+  const rightInventory = useAppSelector(selectRightInventory);
 
   const canDrag = useCallback(() => {
     return canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) && canCraftItem(item, inventoryType);
@@ -65,6 +68,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       }),
       drop: (source) => {
         dispatch(closeTooltip());
+        if (source.inventory === InventoryType.PLAYER && inventoryType === InventoryType.SHOP) {
+          onSell(source, { inventory: inventoryType, item: { slot: item.slot } });
+          return;
+        }
         switch (source.inventory) {
           case InventoryType.SHOP:
             onBuy(source, { inventory: inventoryType, item: { slot: item.slot } });
@@ -77,10 +84,14 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             break;
         }
       },
-      canDrop: (source) =>
-        (source.item.slot !== item.slot || source.inventory !== inventoryType) &&
-        inventoryType !== InventoryType.SHOP &&
-        inventoryType !== InventoryType.CRAFTING,
+      canDrop: (source) => {
+        if (source.item.slot === item.slot && source.inventory === inventoryType) return false;
+        if (inventoryType === InventoryType.CRAFTING) return false;
+        if (inventoryType === InventoryType.SHOP) {
+          return source.inventory === InventoryType.PLAYER;
+        }
+        return true;
+      },
     }),
     [inventoryType, item]
   );
@@ -210,6 +221,21 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
                 )}
               </>
             )}
+            {inventoryType === 'player' && rightInventory.type === 'shop' && rightInventory.sell && (() => {
+              const sellMatch = rightInventory.items.find(
+                (slot) => slot.name === item.name && (slot as SlotWithItem).sellPrice && (slot as SlotWithItem).sellPrice! > 0
+              );
+              if (!sellMatch) return null;
+              const sellPrice = (sellMatch as SlotWithItem).sellPrice!;
+              return (
+                <div className="item-slot-price-wrapper" style={{ color: '#E67E22' }}>
+                  <p>
+                    {Locale.ui_sell || 'Sell'}: {Locale.$ || '$'}
+                    {sellPrice.toLocaleString('en-us')}
+                  </p>
+                </div>
+              );
+            })()}
             <div className="inventory-slot-label-box">
               <div className="inventory-slot-label-text">
                 {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
