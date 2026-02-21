@@ -36,4 +36,61 @@ return {
 		weight = 70000,
 		groups = {['ambulance'] = 0}
 	},
+
+	{
+		coords = vec3(3082.38, 5466.11, 23.59),
+		target = {
+			loc = vec3(3082.38, 5466.11, 23.59),
+			length = 2.0,
+			width = 2.0,
+			heading = 212,
+			minZ = 22.59,
+			maxZ = 25.59,
+			label = 'Open Armory'
+		},
+		name = 'hero_armory',
+		label = 'Hero Armory',
+		owner = false,
+		slots = 50,
+		weight = 50000,
+		groups = { ['hero'] = 0 }
+	},
+
+	{
+		coords = vec3(-1129.66, 351.77, 67.90),
+		target = {
+			loc = vec3(-1129.66, 351.77, 67.90),
+			length = 2.0,
+			width = 2.0,
+			heading = 22,
+			minZ = 66.90,
+			maxZ = 69.90,
+			label = 'Open Armory'
+		},
+		name = 'villain_armory',
+		label = 'Villain Armory',
+		owner = false,
+		slots = 50,
+		weight = 50000,
+		groups = { ['villain'] = 0 }
+	},
+
+	{
+		coords = vec3(2493.39, -367.22, 93.08),
+		target = {
+			loc = vec3(2493.39, -367.22, 93.08),
+			length = 2.0,
+			width = 2.0,
+			heading = 317,
+			minZ = 92.08,
+			maxZ = 95.08,
+			label = 'Open Armory'
+		},
+		name = 'mutant_armory',
+		label = 'Mutant Armory',
+		owner = false,
+		slots = 50,
+		weight = 100000,
+		groups = { ['mutant'] = 0 }
+	},
 }

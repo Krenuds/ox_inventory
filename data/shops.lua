@@ -547,7 +547,7 @@ return {
 		}, locations = {
 			vec3(2491.52, -354.30, 93.07),
 		}, targets = {
-			{ ped = `s_m_y_cop_01`, scenario = 'WORLD_HUMAN_CLIPBOARD', loc = vec3(2491.52, -354.30, 93.07), heading = 163.29, distance = 2.0 },
+			{ ped = `s_m_m_scientist_01`, scenario = 'WORLD_HUMAN_CLIPBOARD', loc = vec3(2491.52, -354.30, 93.07), heading = 163.29, distance = 2.0 },
 		}
 	},
 
@@ -593,7 +593,7 @@ return {
 		}, locations = {
 			vec3(3083.25, 5460.98, 22.64),
 		}, targets = {
-			{ ped = `s_m_y_cop_01`, scenario = 'WORLD_HUMAN_CLIPBOARD', loc = vec3(3081.566, 5464.203, 22.650), heading = -116.55, distance = 2.0 },
+			{ ped = `u_m_y_rsranger_01`, scenario = 'WORLD_HUMAN_SUPERHERO', loc = vec3(3081.566, 5464.203, 22.650), heading = -116.55, distance = 2.0 },
 		}
 	},
 
@@ -611,7 +611,55 @@ return {
 		}, locations = {
 			vec3(3100.71, 5456.12, 19.59),
 		}, targets = {
-			{ ped = `s_m_m_paramedic_01`, scenario = 'WORLD_HUMAN_CLIPBOARD', loc = vec3(3100.71, 5456.12, 19.59), heading = 0.0, distance = 2.0 },
+			{ ped = `s_m_m_scientist_01`, scenario = 'WORLD_HUMAN_CLIPBOARD', loc = vec3(3100.71, 5456.12, 19.59), heading = 0.0, distance = 2.0 },
+		}
+	},
+
+	-- ============================================================================
+	-- VILLAIN SUPPLY STORE - Villain Job Restricted (1 location, no blip)
+	-- ============================================================================
+
+	VillainShop = {
+		name = 'Villain Supply Store',
+		groups = {
+			['villain'] = 0,
+		}, inventory = {
+			{ name = 'bulletproof_vest', price = 150 },
+			{ name = 'WEAPON_CROWBAR', price = 250 },
+			{ name = 'WEAPON_BAT', price = 350 },
+			{ name = 'lockpick', price = 100 },
+			{ name = 'lc_hobostove', price = 500 },
+			{ name = 'recyclablematerial', price = 25 },
+			{ name = 'lcmshine_sugar', price = 75 },
+			{ name = 'shinekit', price = 800 },
+			{ name = 'lc_craftbench', price = 1200 },
+			{ name = 'lc_ammobench', price = 1200 },
+			{ name = 'lc_attabench', price = 1200 },
+			{ name = 'lcmshine_mash', price = 100 },
+			{ name = 'lcmshine_yeast', price = 50 },
+			{ name = 'lcaluminum', price = 30 },
+			{ name = 'lcsteelcan', price = 20 },
+		}, locations = {
+			vec3(-1134.72, 359.32, 67.90),
+		}, targets = {
+			{ ped = `g_m_y_lost_01`, scenario = 'WORLD_HUMAN_SMOKING', loc = vec3(-1134.72, 359.32, 67.90), heading = 154.61, distance = 2.0 },
+		}
+	},
+
+	-- ============================================================================
+	-- VILLAIN VIP SHOP - Villain Job Grade 2+ Restricted (1 location, no blip)
+	-- ============================================================================
+
+	VillainVIPShop = {
+		name = 'Villain VIP Shop',
+		groups = {
+			['villain'] = 2,
+		}, inventory = {
+			-- VIP items will be added as requested
+		}, locations = {
+			vec3(-1150.84, 354.00, 67.90),
+		}, targets = {
+			{ ped = `s_m_m_scientist_01`, scenario = 'WORLD_HUMAN_CLIPBOARD', loc = vec3(-1150.84, 354.00, 67.90), heading = 266.61, distance = 2.0 },
 		}
 	},
 }
